@@ -1,7 +1,7 @@
 import { Instance as popperInstance } from '@popperjs/core/lib/types';
 import dayjs from 'dayjs';
 import { DatePickerConfig } from '../config-provider/config-receiver';
-import { EPickerCols } from '../time-picker/interface';
+import { EPickerCols } from '../_common/js/time-picker/const';
 import { DateValue, TdDatePickerProps, TdDateRangePickerProps } from './type';
 
 export * from './type';

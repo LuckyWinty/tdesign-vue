@@ -3,12 +3,16 @@ import customParseFormat from 'dayjs/plugin/customParseFormat';
 
 import mixins from '../../utils/mixins';
 import getConfigReceiverMixins, { TimePickerConfig } from '../../config-provider/config-receiver';
-import { TimePickerPanelInstance, TimePickerPanelColInstance, EPickerCols } from '../interface';
-import { componentName } from '../constant';
+import { TimePickerPanelInstance, TimePickerPanelColInstance } from '../interface';
+import { EPickerCols } from '../../_common/js/time-picker/const';
+
+import { prefix } from '../../config';
+
 import { panelProps } from './props';
 import PanelCol from './panel-col';
 import TButton from '../../button/button';
 
+const componentName = `${prefix}-time-picker`;
 const name = `${componentName}__panel`;
 
 dayjs.extend(customParseFormat);
@@ -56,11 +60,11 @@ export default mixins(getConfigReceiverMixins<TimePickerPanelInstance, TimePicke
         startAChart, hour, minute, second, endAChart,
       } = this.formatField;
       const res = [];
-      startAChart && res.push(EPickerCols.meridiem);
-      hour && res.push(EPickerCols.hour);
-      minute && res.push(EPickerCols.minute);
-      second && res.push(EPickerCols.second);
-      endAChart && res.push(EPickerCols.meridiem);
+      startAChart && res.push(EPickerCols.MERIDIEM);
+      hour && res.push(EPickerCols.HOUR);
+      minute && res.push(EPickerCols.MINUTE);
+      second && res.push(EPickerCols.SECOND);
+      endAChart && res.push(EPickerCols.MERIDIEM);
       return res;
     },
     localeMeridiems() {
@@ -100,7 +104,7 @@ export default mixins(getConfigReceiverMixins<TimePickerPanelInstance, TimePicke
           <t-button theme="primary" variant="base" onClick={confirmAction}>
             {this.t(this.global.confirm)}
           </t-button>
-          { this.showNowTime && (
+          {this.showNowTime && (
             <t-button theme="primary" variant="text" onClick={this.nowAction}>
               {this.t(this.global.now)}
             </t-button>

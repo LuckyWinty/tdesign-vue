@@ -3,13 +3,13 @@ import debounce from 'lodash/debounce';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 
-import { TimePickerPanelColInstance, EPickerCols } from '../interface';
+import { TimePickerPanelColInstance } from '../interface';
 import { panelColProps } from './props';
-import { componentName } from '../constant';
-
+import { TWELVE_HOUR_FORMAT, EPickerCols } from '../../_common/js/time-picker/const';
 import { prefix } from '../../config';
 
-const name = `${prefix}-time-picker-pane-col`;
+const componentName = `${prefix}-time-picker`;
+const name = `${componentName}-panel-col`;
 
 dayjs.extend(customParseFormat);
 
@@ -18,7 +18,7 @@ export default (Vue as VueConstructor<TimePickerPanelColInstance>).extend({
   data() {
     return {
       splitValue: Object.create(null),
-      timeArr: [EPickerCols.hour, EPickerCols.minute, EPickerCols.second],
+      timeArr: [EPickerCols.HOUR, EPickerCols.MINUTE, EPickerCols.SECOND],
     };
   },
   props: panelColProps(),
@@ -49,8 +49,8 @@ export default (Vue as VueConstructor<TimePickerPanelColInstance>).extend({
       let count: number;
       if (this.timeArr.includes(col)) {
         const colIdx = this.timeArr.indexOf(col);
-        if (col === EPickerCols.hour) {
-          count = /[h]{1}/.test(this.format) ? 11 : 23;
+        if (col === EPickerCols.HOUR) {
+          count = TWELVE_HOUR_FORMAT.test(this.format) ? 11 : 23;
         } else {
           count = 59;
         }
@@ -64,7 +64,7 @@ export default (Vue as VueConstructor<TimePickerPanelColInstance>).extend({
       const res = [];
       let count = 0;
       while (count <= num) {
-        if (!/[h]{1}/.test(this.format) && count < 10) {
+        if (!TWELVE_HOUR_FORMAT.test(this.format) && count < 10) {
           res.push(`0${count}`);
         } else {
           res.push(count);
@@ -100,7 +100,7 @@ export default (Vue as VueConstructor<TimePickerPanelColInstance>).extend({
       if (this.timeArr.includes(col)) {
         const colIdx = this.timeArr.indexOf(col);
         timeIndex = this.calculateTimeIdx(time, this.steps[colIdx], col);
-        if (col === EPickerCols.hour && /[h]{1}/.test(this.format)) {
+        if (col === EPickerCols.HOUR && TWELVE_HOUR_FORMAT.test(this.format)) {
           timeIndex %= 12;
         }
       } else {
@@ -124,16 +124,14 @@ export default (Vue as VueConstructor<TimePickerPanelColInstance>).extend({
     },
     updateTimeScrollPos() {
       // 如果不存在非1 steps的列或已存在初始值时 正常滚动初始化 否则 只顶到各列的首行
-      const { hour, minute, second } = EPickerCols;
+      const { HOUR, MINUTE, SECOND } = EPickerCols;
       const isNormalScroll = this.steps.filter((step) => step !== 1).length < 1
-        || (Number(this.splitValue[hour]) !== Number(this.steps[0]) - 1
-        || Number(this.splitValue[minute]) !== Number(this.steps[1]) - 1
-        || Number(this.splitValue[second]) !== Number(this.steps[2]) - 1);
+        || Number(this.splitValue[HOUR]) !== Number(this.steps[0]) - 1
+        || Number(this.splitValue[MINUTE]) !== Number(this.steps[1]) - 1
+        || Number(this.splitValue[SECOND]) !== Number(this.steps[2]) - 1;
 
       this.cols.forEach((col: EPickerCols) => {
-        isNormalScroll
-          ? this.scrollToTime(col, this.splitValue[col])
-          : this.scrollToTime(col, 0);
+        isNormalScroll ? this.scrollToTime(col, this.splitValue[col]) : this.scrollToTime(col, 0);
       });
     },
     generateColRows(col: EPickerCols) {
@@ -168,14 +166,14 @@ export default (Vue as VueConstructor<TimePickerPanelColInstance>).extend({
     isCurrent(col: EPickerCols, colItem: string | number) {
       let colVal;
       switch (col) {
-        case EPickerCols.meridiem:
+        case EPickerCols.MERIDIEM:
           return this.isPm === (colItem === this.localeMeridiems[1]);
-        case EPickerCols.hour:
-        case EPickerCols.minute:
-        case EPickerCols.second:
+        case EPickerCols.HOUR:
+        case EPickerCols.MINUTE:
+        case EPickerCols.SECOND:
           colVal = this.value.get(col);
           // 处理使用 12 小时制，但是获取的 hour 超过12的问题
-          if (col === EPickerCols.hour && /[h]{1}/.test(this.format)) {
+          if (col === EPickerCols.HOUR && TWELVE_HOUR_FORMAT.test(this.format)) {
             colVal %= 12;
           }
           return colVal === Number(colItem);
@@ -222,8 +220,8 @@ export default (Vue as VueConstructor<TimePickerPanelColInstance>).extend({
         // 处理时间相关col的滚动
         const colIdx = this.timeArr.indexOf(col);
         let max = 59;
-        if (col === EPickerCols.hour) {
-          max = /[h]{1}/.test(this.format) ? 11 : 23;
+        if (col === EPickerCols.HOUR) {
+          max = TWELVE_HOUR_FORMAT.test(this.format) ? 11 : 23;
         }
         scrollVal = Math.min(
           Math.abs(
@@ -274,7 +272,7 @@ export default (Vue as VueConstructor<TimePickerPanelColInstance>).extend({
   },
   render() {
     return (
-      <div class={`${componentName}__panel-body`} col-num={`${this.cols.length}`}>
+      <div class={`${componentName}__panel-body`} col-num={this.cols.length}>
         {this.renderActiveMask()}
         {this.renderScrollers()}
       </div>

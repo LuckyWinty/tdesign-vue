@@ -2,21 +2,27 @@ import Vue from 'vue';
 import mixins from '../utils/mixins';
 import getConfigReceiverMixins, { TimePickerConfig } from '../config-provider/config-receiver';
 import {
-  componentName, AM_FORMAT, EMPTY_VALUE, MERIDIEM_LIST,
-} from './constant';
-import {
-  TimeInputType, InputEvent, InputTime, KeyboardDirection, EPickerCols,
-} from './interface';
+  PRE_MERIDIEM_FORMAT,
+  EMPTY_VALUE,
+  MERIDIEM_LIST,
+  TWELVE_HOUR_FORMAT,
+  HM_FORMAT,
+  HMS_FORMAT,
+  EPickerCols,
+} from '../_common/js/time-picker/const';
+import { KeyboardCode } from '../_common/js/common';
+import { TimeInputType, InputEvent, InputTime } from './interface';
 
 import { prefix } from '../config';
 
+const componentName = `${prefix}-time-picker`;
 const name = `${prefix}-time-picker-input-items`; // t-time-picker-input-items
 
 export default mixins(getConfigReceiverMixins<Vue, TimePickerConfig>('timePicker')).extend({
   name,
   data() {
     return {
-      timeArr: [EPickerCols.hour, EPickerCols.minute, EPickerCols.second],
+      timeArr: [EPickerCols.HOUR, EPickerCols.MINUTE, EPickerCols.SECOND],
     };
   },
   props: {
@@ -91,7 +97,7 @@ export default mixins(getConfigReceiverMixins<Vue, TimePickerConfig>('timePicker
       if (!isNaN(number)) {
         switch (type) {
           case 'hour':
-            if (number > (/[h]{1}/.test(format) ? 12 : 24) || number < 0) {
+            if (number > (TWELVE_HOUR_FORMAT.test(format) ? 12 : 24) || number < 0) {
               emitChange = false;
             }
             break;
@@ -137,20 +143,20 @@ export default mixins(getConfigReceiverMixins<Vue, TimePickerConfig>('timePicker
       const colIdx = this.timeArr.indexOf(type as EPickerCols);
 
       // 增加减少
-      if ([KeyboardDirection.up, KeyboardDirection.down].includes(which)) {
-        if (type === EPickerCols.meridiem) return;
+      if ([KeyboardCode.UP, KeyboardCode.DOWN].includes(which)) {
+        if (type === EPickerCols.MERIDIEM) return;
         // 加减
         const current = curDayJs[type] ? Number(curDayJs[type]) : 0;
         const operateStep = Number(steps[colIdx]);
-        const operate = which === KeyboardDirection.up ? 0 - operateStep : operateStep;
+        const operate = which === KeyboardCode.UP ? 0 - operateStep : operateStep;
         let result = current + operate;
 
         if (type === 'hour') {
-          if (result > (/[h]{1}/.test(format) ? 11 : 23)) {
+          if (result > (TWELVE_HOUR_FORMAT.test(format) ? 11 : 23)) {
             // 上限
             result = 0;
           } else if (result < 0) {
-            result = /[h]{1}/.test(format) ? 11 : 23;
+            result = TWELVE_HOUR_FORMAT.test(format) ? 11 : 23;
           }
         } else if (result > 59 || result < 0) {
           result = 0;
@@ -161,12 +167,12 @@ export default mixins(getConfigReceiverMixins<Vue, TimePickerConfig>('timePicker
           type,
           index,
         });
-      } else if ([KeyboardDirection.left, KeyboardDirection.right].includes(which)) {
+      } else if ([KeyboardCode.LEFT, KeyboardCode.RIGHT].includes(which)) {
         // 移动方向
         const { target } = e;
         // 查找上下一个兄弟节点
         const { parentNode } = target;
-        const focus = which === KeyboardDirection.left ? parentNode.previousSibling : parentNode.nextSibling;
+        const focus = which === KeyboardCode.LEFT ? parentNode.previousSibling : parentNode.nextSibling;
         if (focus) {
           const input = focus.querySelector('input');
           if (!input.focus) return;
@@ -184,10 +190,9 @@ export default mixins(getConfigReceiverMixins<Vue, TimePickerConfig>('timePicker
       if (!input) {
         return;
       }
+
       if (input.value !== sV) {
-        // input.value = sV;
         Object.assign(input, { value: sV });
-        // input.setAttribute('value', sV);
       }
     },
     // ==== 渲染逻辑层 START ====
@@ -217,7 +222,8 @@ export default mixins(getConfigReceiverMixins<Vue, TimePickerConfig>('timePicker
         if (index > 0) render.push('-');
         const { hour, minute, second } = inputTime;
         // 渲染组件 - 默认有小时输入
-        render.push(<span class={itemClasses}>
+        render.push(
+          <span class={itemClasses}>
             <input
               class={inputClass}
               value={hour}
@@ -227,11 +233,13 @@ export default mixins(getConfigReceiverMixins<Vue, TimePickerConfig>('timePicker
               onBlur={(e: FocusEvent) => this.onBlur(e, 'hour', index, Number(hour))}
               onFocus={(e: FocusEvent) => this.onFocus(e, 'hour', index, Number(hour))}
             />
-          </span>);
+          </span>,
+        );
         // 判断分秒输入
-        if (/[hH]{1,2}:m{1,2}/.test(format)) {
+        if (HM_FORMAT.test(format)) {
           // 需要分钟输入器
-          render.push(<span class={itemClasses}>
+          render.push(
+            <span class={itemClasses}>
               &#58;
               <input
                 class={inputClass}
@@ -242,10 +250,12 @@ export default mixins(getConfigReceiverMixins<Vue, TimePickerConfig>('timePicker
                 onBlur={(e: FocusEvent) => this.onBlur(e, 'minute', index, Number(minute))}
                 onFocus={(e: FocusEvent) => this.onFocus(e, 'minute', index, Number(minute))}
               />
-            </span>);
+            </span>,
+          );
           // 需要秒输入器
-          if (/[hH]{1,2}:m{1,2}:s{1,2}/.test(format)) {
-            render.push(<span class={itemClasses}>
+          if (HMS_FORMAT.test(format)) {
+            render.push(
+              <span class={itemClasses}>
                 &#58;
                 <input
                   class={inputClass}
@@ -256,15 +266,16 @@ export default mixins(getConfigReceiverMixins<Vue, TimePickerConfig>('timePicker
                   onBlur={(e: FocusEvent) => this.onBlur(e, 'second', index, Number(second))}
                   onFocus={(e: FocusEvent) => this.onFocus(e, 'second', index, Number(second))}
                 />
-              </span>);
+              </span>,
+            );
           }
         }
         // 判断上下午位置
-        if (/[h]{1}/.test(format) && (format.includes('A') || format.includes('a'))) {
+        if (TWELVE_HOUR_FORMAT.test(format) && (format.includes('A') || format.includes('a'))) {
           const localeMeridiemList = [this.global.anteMeridiem, this.global.postMeridiem];
           const text = localeMeridiemList[MERIDIEM_LIST.indexOf(inputTime.meridiem.toUpperCase())];
           // 放在前面or后面
-          render[AM_FORMAT.test(format) ? 'unshift' : 'push'](
+          render[PRE_MERIDIEM_FORMAT.test(format) ? 'unshift' : 'push'](
             <span class={itemClasses} onClick={() => allowInput && this.onToggleMeridiem(index)}>
               <input
                 readonly

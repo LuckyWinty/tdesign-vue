@@ -17,7 +17,7 @@ import CalendarPresets from './calendar-presets';
 import TDate from './panel/date';
 import TDateRange from './panel/date-range';
 import TTimePickerPanel from '../time-picker/panel';
-import { EPickerCols } from '../time-picker/interface';
+import { EPickerCols } from '../_common/js/time-picker/const';
 import { firstUpperCase, extractTimeFormat } from '../_common/js/date-picker/utils';
 import { TimePickerPanelInstance } from '../time-picker';
 import { DatePickerInstance, DateValue, PickContext } from './interface';
@@ -637,7 +637,7 @@ export default mixins(
             <t-time-picker-panel
               ref="timePickerPanel"
               format={extractTimeFormat(this.dateFormat) || 'HH:mm:ss'}
-              cols={[EPickerCols.hour, EPickerCols.minute, EPickerCols.second]}
+              cols={[EPickerCols.HOUR, EPickerCols.MINUTE, EPickerCols.SECOND]}
               steps={[1, 1, 1]}
               value={!range ? [startTimeValue] : [startTimeValue, endTimeValue]}
               ontime-pick={this.handleTimePick}

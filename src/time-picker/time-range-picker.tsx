@@ -2,12 +2,12 @@ import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import isFunction from 'lodash/isFunction';
 import isEqual from 'lodash/isEqual';
-
 import { TimeIcon } from 'tdesign-icons-vue';
+
 import mixins from '../utils/mixins';
 import getConfigReceiverMixins, { TimePickerConfig } from '../config-provider/config-receiver';
 import {
-  TimePickerInstance, TimeInputEvent, InputTime, TimePickerPanelInstance, EPickerCols,
+  TimePickerInstance, TimeInputEvent, InputTime, TimePickerPanelInstance,
 } from './interface';
 import TPopup, { PopupVisibleChangeContext } from '../popup';
 import { prefix } from '../config';
@@ -19,8 +19,14 @@ import InputItems from './input-items';
 import props from './time-range-picker-props';
 
 import {
-  TIME_PICKER_EMPTY, EMPTY_VALUE, componentName, AM_FORMAT, PM_Format, AM,
-} from './constant';
+  AM,
+  TIME_PICKER_EMPTY,
+  EMPTY_VALUE,
+  PRE_MERIDIEM_FORMAT,
+  POST_MERIDIEM_FORMAT,
+  TWELVE_HOUR_FORMAT,
+  EPickerCols,
+} from '../_common/js/time-picker/const';
 
 const name = `${prefix}-time-picker`;
 
@@ -37,7 +43,7 @@ export default mixins(getConfigReceiverMixins<TimePickerInstance, TimePickerConf
     TInput,
   },
 
-  props: { ...props },
+  props,
 
   data() {
     // 初始化数据
@@ -156,12 +162,14 @@ export default mixins(getConfigReceiverMixins<TimePickerInstance, TimePickerConf
       const panelRef = this.$refs.panel as TimePickerPanelInstance;
       let shouldUpdatePanel = false;
       let setTime = time[index];
-      if (EPickerCols.hour === col) {
+      if (EPickerCols.HOUR === col) {
         setTime = value.set(
           col,
-          value.hour() >= 12 && (AM_FORMAT.test(format) || PM_Format.test(format)) ? Number(change) + 12 : change,
+          value.hour() >= 12 && (PRE_MERIDIEM_FORMAT.test(format) || POST_MERIDIEM_FORMAT.test(format))
+            ? Number(change) + 12
+            : change,
         );
-      } else if ([EPickerCols.minute, EPickerCols.second].includes(col)) {
+      } else if ([EPickerCols.MINUTE, EPickerCols.SECOND].includes(col)) {
         setTime = value.set(col, change);
       } else {
         // 当前上下午
@@ -211,7 +219,7 @@ export default mixins(getConfigReceiverMixins<TimePickerInstance, TimePickerConf
           let minute: number | string = time.minute();
           let second: number | string = time.second();
           // 判断12小时制上下午显示问题
-          if (/[h]{1}/.test(format)) {
+          if (TWELVE_HOUR_FORMAT.test(format)) {
             hour %= 12;
           }
           // 判定是否补齐小于10
@@ -306,7 +314,7 @@ export default mixins(getConfigReceiverMixins<TimePickerInstance, TimePickerConf
         trigger="click"
         disabled={disabled}
         visible={this.isShowPanel}
-        overlayClassName={`${componentName}__panel-container ${componentName}__range`}
+        overlayClassName={`${name}__panel-container ${name}__range`}
         on={{ 'visible-change': this.panelVisibleChange }}
         expandAnimation={true}
       >
